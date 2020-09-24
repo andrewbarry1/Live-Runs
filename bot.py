@@ -9,10 +9,10 @@ class MyClient(discord.Client):
         self.lbs = [Leaderboard(id) for id in lbs]
         self.channel = None
         self.channel_name = channel_name
-        await self.reload_lbs()
+        self.reload_lbs()
 
 
-    async def reload_lbs():
+    async def reload_lbs(self):
         for lb in self.lbs:
             await lb.load()
 
@@ -20,14 +20,17 @@ class MyClient(discord.Client):
     async def on_ready(self):
         print('Logged in as %s!' % self.user)
         if self.channel is None:
-            all_channels = [c for c in self.get_all_channels() if c.name == self.channel_name and c is TextChannel]
+            all_channels = [c for c in self.get_all_channels() if c.name == self.channel_name and c is discord.TextChannel]
             if len(all_channels) > 0: # TODO multiple server support...
                 self.channel = all_channels[0]
         
 
     async def on_member_update(self, before, after):
-        activity = after.activies[0]
-        if activity and activity is Streaming:
+        print('on_member_update called')
+        if len(after.activities) == 0:
+            return
+        activity = after.activities[0]
+        if activity and activity is discord.Streaming:
             streamer = activity.url[activity.url.rfind('/')+1:]
             playing = activity.game
             print('%s is playing %s' % (streamer, playing))
